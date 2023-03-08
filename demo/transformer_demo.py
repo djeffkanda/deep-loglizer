@@ -46,6 +46,9 @@ parser.add_argument("--batch_size", default=1024, type=int)
 parser.add_argument("--learning_rate", default=0.01, type=float)
 parser.add_argument("--topk", default=10, type=int)
 parser.add_argument("--patience", default=3, type=int)
+parser.add_argument("--eval_type", default="session", type=str)
+
+
 
 ##### Others
 parser.add_argument("--random_seed", default=42, type=int)

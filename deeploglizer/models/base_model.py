@@ -13,12 +13,12 @@ from deeploglizer.common.utils import set_device, tensor2flatten_arr
 
 class Embedder(nn.Module):
     def __init__(
-        self,
-        vocab_size,
-        embedding_dim,
-        pretrain_matrix=None,
-        freeze=False,
-        use_tfidf=False,
+            self,
+            vocab_size,
+            embedding_dim,
+            pretrain_matrix=None,
+            freeze=False,
+            use_tfidf=False,
     ):
         super(Embedder, self).__init__()
         self.use_tfidf = use_tfidf
@@ -40,20 +40,20 @@ class Embedder(nn.Module):
 
 class ForcastBasedModel(nn.Module):
     def __init__(
-        self,
-        meta_data,
-        model_save_path,
-        feature_type,
-        label_type,
-        eval_type,
-        topk,
-        use_tfidf,
-        embedding_dim,
-        freeze=False,
-        gpu=-1,
-        anomaly_ratio=None,
-        patience=3,
-        **kwargs,
+            self,
+            meta_data,
+            model_save_path,
+            feature_type,
+            label_type,
+            eval_type,
+            topk,
+            use_tfidf,
+            embedding_dim,
+            freeze=False,
+            gpu=-1,
+            anomaly_ratio=None,
+            patience=3,
+            **kwargs,
     ):
         super(ForcastBasedModel, self).__init__()
         self.device = set_device(gpu)
@@ -114,11 +114,11 @@ class ForcastBasedModel(nn.Module):
             use_cols = ["session_idx", "window_anomalies", "window_preds"]
             session_df = (
                 store_df[use_cols]
-                .groupby("session_idx", as_index=False)
-                .max()  # most anomalous window
+                    .groupby("session_idx", as_index=False)
+                    .max()  # most anomalous window
             )
             assert (
-                self.anomaly_ratio is not None
+                    self.anomaly_ratio is not None
             ), "anomaly_ratio should be specified for autoencoder!"
             thre = np.percentile(
                 session_df[f"window_preds"].values, 100 - self.anomaly_ratio * 100
@@ -241,14 +241,16 @@ class ForcastBasedModel(nn.Module):
             for topk in range(1, self.topk + 1):
                 pred = (session_df[f"window_pred_anomaly_{topk}"] > 0).astype(int)
                 y = (session_df["window_anomalies"] > 0).astype(int)
-                window_topk_acc = 1 - store_df["window_anomalies"].sum() / len(store_df)
+                window_topk_acc = (pred == y).astype(int).sum()/pred.shape[0]
+                # This is the percentage of anomalous data
+                # window_topk_acc = 1 - store_df["window_anomalies"].sum() / len(store_df)
                 eval_results = {
                     "f1": f1_score(y, pred),
                     "rc": recall_score(y, pred),
                     "pc": precision_score(y, pred),
                     "top{}-acc".format(topk): window_topk_acc,
                 }
-                logging.info({k: f"{v:.3f}" for k, v in eval_results.items()})
+                logging.info({k: f"{v:.8f}" for k, v in eval_results.items()})
                 if eval_results["f1"] >= best_f1:
                     best_result = eval_results
                     best_f1 = eval_results["f1"]

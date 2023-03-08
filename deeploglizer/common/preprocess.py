@@ -225,6 +225,7 @@ class FeatureExtractor(BaseEstimator):
         logging.info("{} sliding windows generated.".format(window_count))
 
     def __windows2quantitative(self, windows):
+        # Bag of words
         total_features = []
         for window in windows:
             feature = [0] * len(self.id2log_train)

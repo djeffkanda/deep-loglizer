@@ -7,7 +7,6 @@ import numpy as np
 from utils import decision, json_pretty_dump
 from collections import OrderedDict, defaultdict
 
-
 seed = 42
 np.random.seed(seed)
 
@@ -18,12 +17,14 @@ parser.add_argument("--train_anomaly_ratio", default=1.0, type=float)
 params = vars(parser.parse_args())
 
 data_name = f'hdfs_{params["train_anomaly_ratio"]}_tar'
-data_dir = "../data/processed/HDFS_100k"
+data_dir = "../data/processed/HDFS_1"
 
 params = {
     # "log_file": "../data/HDFS/HDFS.log_structured.csv",
-    "log_file": "../data/HDFS/HDFS_100k.log_structured.csv",
-    "label_file": "../data/HDFS/anomaly_label.csv",
+    # "log_file": "../data/HDFS/HDFS_100k.log_structured.csv",
+    # "label_file": "../data/HDFS/anomaly_label.csv",
+    "log_file": "../data/HDFS_1/HDFS.log_structured.csv",
+    "label_file": "../data/HDFS_1/anomaly_label.csv",
     "test_ratio": 0.2,
     "random_sessions": True,  # shuffle sessions
     "train_anomaly_ratio": params["train_anomaly_ratio"],
@@ -34,12 +35,12 @@ os.makedirs(data_dir, exist_ok=True)
 
 
 def preprocess_hdfs(
-    log_file,
-    label_file,
-    test_ratio=None,
-    train_anomaly_ratio=1,
-    random_sessions=False,
-    **kwargs
+        log_file,
+        label_file,
+        test_ratio=None,
+        train_anomaly_ratio=1,
+        random_sessions=False,
+        **kwargs
 ):
     """Load HDFS structured log into train and test data
 
@@ -62,6 +63,8 @@ def preprocess_hdfs(
 
     session_dict = OrderedDict()
     column_idx = {col: idx for idx, col in enumerate(struct_log.columns)}
+
+    # Group data by session where each session is identified by the id of the block
     for _, row in enumerate(struct_log.values):
         blkId_list = re.findall(r"(blk_-?\d+)", row[column_idx["Content"]])
         blkId_set = set(blkId_list)
@@ -99,7 +102,7 @@ def preprocess_hdfs(
         k: session_dict[k]
         for k in session_id_train
         if (session_dict[k]["label"] == 0)
-        or (session_dict[k]["label"] == 1 and decision(train_anomaly_ratio))
+           or (session_dict[k]["label"] == 1 and decision(train_anomaly_ratio))
     }
 
     session_test = {k: session_dict[k] for k in session_id_test}
